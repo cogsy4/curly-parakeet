@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barlows Bingo Countdown</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #0d0d1a;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background balls */
+  .bg-ball {
+    position: fixed;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bangers', cursive;
+    color: #fff;
+    font-weight: 900;
+    box-shadow: inset -3px -3px 8px rgba(0,0,0,0.4), inset 2px 2px 6px rgba(255,255,255,0.2);
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Rainbow top bar */
+  .rainbow-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #ff006e, #fb5607, #ffbe0b, #2ecc71, #3a86ff, #8338ec, #ff006e);
+    background-size: 300% 100%;
+    animation: rainbow 3s linear infinite;
+    z-index: 10;
+  }
+
+  @keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+  }
+
+  .pre-title {
+    font-size: 0.8rem;
+    font-weight: 900;
+    letter-spacing: 5px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .main-title {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(3rem, 12vw, 6rem);
+    color: #f5c842;
+    letter-spacing: 4px;
+    line-height: 0.9;
+    text-shadow: 4px 4px 0 #ff006e, 8px 8px 0 rgba(58,134,255,0.4);
+    animation: titlePulse 4s ease-in-out infinite;
+    margin-bottom: 4px;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { text-shadow: 4px 4px 0 #ff006e, 8px 8px 0 rgba(58,134,255,0.4); }
+    50% { text-shadow: 4px 4px 0 #fb5607, 8px 8px 0 rgba(131,56,236,0.4); }
+  }
+
+  .sub-title {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    color: #fff;
+    letter-spacing: 5px;
+    margin-bottom: 24px;
+  }
+
+  .countdown-label {
+    font-family: 'Bangers', cursive;
+    font-size: 1rem;
+    letter-spacing: 5px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 14px;
+  }
+
+  .countdown-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .countdown-box {
+    background: linear-gradient(135deg, #1a1a2e, #0d0d1a);
+    border: 2px solid rgba(245,200,66,0.4);
+    border-radius: 14px;
+    padding: clamp(12px, 3vw, 20px) 8px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .countdown-box::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 1px;
+    background: rgba(245,200,66,0.15);
+  }
+
+  .countdown-box::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(245,200,66,0.05) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .countdown-num {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(3rem, 10vw, 5rem);
+    color: #f5c842;
+    line-height: 1;
+    display: block;
+    text-shadow: 0 0 30px rgba(245,200,66,0.6);
+    transition: transform 0.1s ease;
+  }
+
+  .countdown-num.tick {
+    transform: scale(1.1);
+  }
+
+  .countdown-unit {
+    font-size: clamp(0.55rem, 1.5vw, 0.7rem);
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    display: block;
+    margin-top: 4px;
+  }
+
+  .draw-date {
+    font-family: 'Bangers', cursive;
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    letter-spacing: 3px;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+
+  /* Balls strip */
+  .balls-strip {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .lball {
+    width: clamp(38px, 9vw, 52px);
+    height: clamp(38px, 9vw, 52px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bangers', cursive;
+    font-size: clamp(0.85rem, 2.5vw, 1.2rem);
+    color: #fff;
+    box-shadow: inset -2px -2px 6px rgba(0,0,0,0.4), inset 2px 2px 6px rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.4);
+    animation: ballBounce 2s ease-in-out infinite;
+    position: relative;
+  }
+
+  .lball::after {
+    content: '';
+    position: absolute;
+    top: 18%; left: 22%;
+    width: 28%; height: 18%;
+    background: rgba(255,255,255,0.35);
+    border-radius: 50%;
+    transform: rotate(-30deg);
+  }
+
+  .lball:nth-child(1){background:radial-gradient(circle at 35% 35%,#ff6b6b,#ff006e);animation-delay:0s}
+  .lball:nth-child(2){background:radial-gradient(circle at 35% 35%,#ffa94d,#fb5607);animation-delay:0.2s}
+  .lball:nth-child(3){background:radial-gradient(circle at 35% 35%,#ffe066,#e6a800);animation-delay:0.4s}
+  .lball:nth-child(4){background:radial-gradient(circle at 35% 35%,#69db7c,#2f9e44);animation-delay:0.6s}
+  .lball:nth-child(5){background:radial-gradient(circle at 35% 35%,#74c0fc,#3a86ff);animation-delay:0.8s}
+  .lball:nth-child(6){background:radial-gradient(circle at 35% 35%,#cc5de8,#8338ec);animation-delay:1.0s}
+
+  @keyframes ballBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Info row */
+  .info-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .info-pill {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 30px;
+    padding: 8px 16px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 0.5px;
+  }
+
+  .info-pill span { color: #f5c842; }
+
+  /* Website */
+  .website {
+    font-size: 0.78rem;
+    font-weight: 900;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 1px;
+    margin-top: 8px;
+  }
+
+  /* Finished state */
+  .finished-msg {
+    display: none;
+    font-family: 'Bangers', cursive;
+    font-size: clamp(2rem, 8vw, 4rem);
+    color: #f5c842;
+    letter-spacing: 3px;
+    text-align: center;
+    text-shadow: 3px 3px 0 #ff006e;
+    animation: titlePulse 1s ease-in-out infinite;
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="rainbow-bar"></div>
+<div id="bgBalls"></div>
+
+<div class="container">
+  <div class="pre-title">⭐ Welcome to ⭐</div>
+  <div class="main-title">BARLOWS<br>BINGO</div>
+  <div class="sub-title">LOTTERY 🎱</div>
+
+  <div class="balls-strip">
+    <div class="lball">7</div>
+    <div class="lball">14</div>
+    <div class="lball">23</div>
+    <div class="lball">38</div>
+    <div class="lball">45</div>
+    <div class="lball">59</div>
+  </div>
+
+  <div class="finished-msg" id="finishedMsg">🎉 THE DRAW IS LIVE! 🎉</div>
+
+  <div class="countdown-label" id="countdownLabel">🚀 FIRST DRAW COUNTDOWN 🚀</div>
+
+  <div class="countdown-grid" id="countdownGrid">
+    <div class="countdown-box">
+      <span class="countdown-num" id="days">00</span>
+      <span class="countdown-unit">Days</span>
+    </div>
+    <div class="countdown-box">
+      <span class="countdown-num" id="hours">00</span>
+      <span class="countdown-unit">Hours</span>
+    </div>
+    <div class="countdown-box">
+      <span class="countdown-num" id="mins">00</span>
+      <span class="countdown-unit">Minutes</span>
+    </div>
+    <div class="countdown-box">
+      <span class="countdown-num" id="secs">00</span>
+      <span class="countdown-unit">Seconds</span>
+    </div>
+  </div>
+
+  <div class="draw-date">📅 SATURDAY 28TH MARCH 2026 — 7:30PM</div>
+
+  <div class="info-row">
+    <div class="info-pill">💰 Just <span>£2.50</span> per entry</div>
+    <div class="info-pill">📞 <span>07930 805994</span></div>
+    <div class="info-pill">❤️ <span>50%</span> to defibrillator</div>
+  </div>
+
+  <div class="website">🌐 graceful-swan-d0c3cd.netlify.app</div>
+</div>
+
+<script>
+// Background bouncing balls
+var bgPhysics = [];
+var bgColors = [
+  'radial-gradient(circle at 35% 35%, #ff6b6b, #ff006e)',
+  'radial-gradient(circle at 35% 35%, #ffa94d, #fb5607)',
+  'radial-gradient(circle at 35% 35%, #ffe066, #e6a800)',
+  'radial-gradient(circle at 35% 35%, #69db7c, #2f9e44)',
+  'radial-gradient(circle at 35% 35%, #74c0fc, #3a86ff)',
+  'radial-gradient(circle at 35% 35%, #cc5de8, #8338ec)'
+];
+
+var container = document.getElementById('bgBalls');
+var ballSize = 60;
+var count = 15;
+
+for(var i = 0; i < count; i++) {
+  var el = document.createElement('div');
+  el.className = 'bg-ball';
+  el.style.width = ballSize + 'px';
+  el.style.height = ballSize + 'px';
+  el.style.fontSize = '16px';
+  el.style.background = bgColors[i % 6];
+  el.textContent = Math.floor(Math.random() * 59) + 1;
+  container.appendChild(el);
+  bgPhysics.push({
+    el: el,
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    vx: (Math.random() - 0.5) * 3,
+    vy: (Math.random() - 0.5) * 3,
+    r: ballSize / 2
+  });
+}
+
+setInterval(function() {
+  var w = window.innerWidth, h = window.innerHeight;
+  bgPhysics.forEach(function(b) {
+    b.x += b.vx; b.y += b.vy;
+    if(b.x - b.r < 0) { b.x = b.r; b.vx = Math.abs(b.vx); }
+    if(b.x + b.r > w) { b.x = w - b.r; b.vx = -Math.abs(b.vx); }
+    if(b.y - b.r < 0) { b.y = b.r; b.vy = Math.abs(b.vy); }
+    if(b.y + b.r > h) { b.y = h - b.r; b.vy = -Math.abs(b.vy); }
+    b.el.style.left = (b.x - b.r) + 'px';
+    b.el.style.top = (b.y - b.r) + 'px';
+  });
+}, 16);
+
+// Countdown
+var prevSecs = -1;
+function updateCountdown() {
+  var target = new Date('2026-03-28T19:30:00');
+  var now = new Date();
+  var diff = target - now;
+
+  if(diff <= 0) {
+    document.getElementById('countdownGrid').style.display = 'none';
+    document.getElementById('countdownLabel').style.display = 'none';
+    document.getElementById('finishedMsg').style.display = 'block';
+    return;
+  }
+
+  var days = Math.floor(diff / (1000*60*60*24));
+  var hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+  var mins = Math.floor((diff % (1000*60*60)) / (1000*60));
+  var secs = Math.floor((diff % (1000*60)) / 1000);
+
+  document.getElementById('days').textContent = String(days).padStart(2,'0');
+  document.getElementById('hours').textContent = String(hours).padStart(2,'0');
+  document.getElementById('mins').textContent = String(mins).padStart(2,'0');
+
+  var secsEl = document.getElementById('secs');
+  secsEl.textContent = String(secs).padStart(2,'0');
+
+  // Tick animation on seconds change
+  if(secs !== prevSecs) {
+    secsEl.classList.add('tick');
+    setTimeout(function(){ secsEl.classList.remove('tick'); }, 100);
+    prevSecs = secs;
+  }
+}
+
+updateCountdown();
+setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>
